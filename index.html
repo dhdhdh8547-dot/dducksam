@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -31,20 +31,20 @@ h1 {
     font-size: 28px;
 }
 
+/* 작고 색상 없는 인쇄 버튼 */
 .print-btn {
-    padding: 10px 20px;
-    font-size: 15px;
-    font-weight: bold;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: transparent;
+    color: #666;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
 .print-btn:hover {
-    background-color: #45a049;
+    background: #f0f0f0;
+    color: #333;
 }
 
 /* 시간표 */
@@ -64,7 +64,7 @@ h1 {
     height: 55px;
     padding: 5px;
     word-break: keep-all;
-    white-space: pre-line; /* 이름 줄바꿈 처리 */
+    white-space: pre-line;
 }
 
 .schedule th {
@@ -227,7 +227,7 @@ h1 {
 
 <div class="top-bar">
     <h1>떡삼 부스 시간표</h1>
-    <button class="print-btn" onclick="window.print()">시간표 인쇄하기</button>
+    <button class="print-btn" onclick="window.print()">인쇄</button>
 </div>
 
 <div id="tables"></div>
@@ -242,7 +242,7 @@ h1 {
         <h2 id="modalTitle">이름 입력</h2>
         <div class="modal-info" id="modalInfo"></div>
         <input type="text" id="nameInput" placeholder="예: 홍길동, 김철수">
-        <div class="modal-tip"> 여러 명 입력 시 쉼표(,)로 구분해 주세요.</div>
+        <div class="modal-tip">여러 명 입력 시 쉼표(,)로 구분해 주세요.</div>
         <div class="buttons">
             <button class="save" id="btnSave">저장</button>
             <button class="delete" id="btnDelete">전체 삭제</button>
@@ -305,15 +305,15 @@ h1 {
           date: "9월 17일 (목요일)",
           className: "day17",
           times: ["(오픈) 10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "(정리) 16:00-17:00"],
-          roles: ["떡", "삼겹살", "꼬치", "소스", "보조", "재정", "도우미"],
+          roles: ["떡", "삼겹살", "꼬치", "소스", "보조", "재정"],
           names: [
-              ["이상준","김동하","홍혜인","김진욱","김에스터","김현수",""],
-              ["이상준","김동하","김규민","김동욱","김에스터","박준영","이지환"],
-              ["김소진","박준영","이번영","김다인","허우영","도현민","양지성"],
-              ["김소진","김요한","이번영","유세종","김다인","도현민","허우영"],
-              ["김현수","김진욱","김주은","윤서현","김요한","홍혜인",""],
-              ["","","","","","",""],
-              ["","","","","","",""]
+              ["이상준","김동하","홍혜인","김진욱","김에스터","김현수"],
+              ["이상준","김동하","김규민","김동욱","김에스터","박준영"],
+              ["김소진","박준영","이번영","김다인","허우영","도현민"],
+              ["김소진","김요한","이번영","유세종","김다인","도현민"],
+              ["김현수","김진욱","김주은","윤서현","김요한","홍혜인"],
+              ["","","","","",""],
+              ["","","","","",""]
           ]
       }
   ];
@@ -324,7 +324,15 @@ h1 {
   // 실시간 동기화 수신
   onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
-      if (data) {
+      
+      // 목요일 역할이 6개로 줄어들었으므로 이전 구조(7열) 감지 시 자동 업데이트
+      const isOldData = data && (
+          !data[1] || data[1].length < 7 || 
+          !data[2] || data[2].length < 7 ||
+          (data[2][0] && data[2][0].length > 6)
+      );
+
+      if (data && !isOldData) {
           currentData = data;
       } else {
           currentData = schedules.map(s => s.names.map(row => [...row]));
@@ -372,7 +380,6 @@ h1 {
 
                   const rawData = (currentData[dayIndex] && currentData[dayIndex][rowIndex] && currentData[dayIndex][rowIndex][colIndex]) || "";
                   
-                  // 쉼표로 구분된 데이터 줄바꿈 형태로 변환
                   const formattedNames = rawData ? rawData.split(',').map(n => n.trim()).filter(n => n).join('\n') : "";
 
                   if (formattedNames === "") {
@@ -414,7 +421,6 @@ h1 {
       if (!selected) return;
       const rawInput = document.getElementById("nameInput").value;
       
-      // 입력값을 쉼표 구분 단어로 정돈하여 저장
       const namesArray = rawInput.split(',').map(n => n.trim()).filter(n => n);
       const formattedInput = namesArray.join(', ');
 
