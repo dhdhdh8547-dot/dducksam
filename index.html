@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>떡삼 부스 시간표</title>
+<title>떡삼 부스 시간표 (실시간 연동)</title>
 
 <style>
 * {
@@ -55,17 +55,9 @@ h1 {
 }
 
 /* 날짜별 제목 색상 */
-.day15 .title {
-    background: #f3dfd0;
-}
-
-.day16 .title {
-    background: #fff1c4;
-}
-
-.day17 .title {
-    background: #dcecf8;
-}
+.day15 .title { background: #f3dfd0; }
+.day16 .title { background: #fff1c4; }
+.day17 .title { background: #dcecf8; }
 
 .time {
     width: 150px;
@@ -154,53 +146,19 @@ h1 {
     font-size: 15px;
 }
 
-.save {
-    background: #2878d4;
-    color: white;
-}
-
-.delete {
-    background: #e54848;
-    color: white;
-}
-
-.cancel {
-    background: #ddd;
-}
+.save { background: #2878d4; color: white; }
+.delete { background: #e54848; color: white; }
+.cancel { background: #ddd; }
 
 /* 모바일 */
 @media (max-width: 700px) {
-
-    body {
-        padding: 10px;
-    }
-
-    h1 {
-        font-size: 24px;
-    }
-
-    .schedule {
-        font-size: 13px;
-    }
-
-    .schedule th,
-    .schedule td {
-        height: 48px;
-        padding: 3px;
-    }
-
-    .schedule .title {
-        font-size: 17px;
-    }
-
-    .time {
-        width: 105px;
-    }
-
-    .empty::after {
-        content: "+";
-        font-size: 18px;
-    }
+    body { padding: 10px; }
+    h1 { font-size: 24px; }
+    .schedule { font-size: 13px; }
+    .schedule th, .schedule td { height: 48px; padding: 3px; }
+    .schedule .title { font-size: 17px; }
+    .time { width: 105px; }
+    .empty::after { content: "+"; font-size: 18px; }
 }
 </style>
 </head>
@@ -215,528 +173,206 @@ h1 {
     빈 칸을 클릭하여 이름을 입력하세요. 이미 입력된 이름을 클릭하면 수정 또는 삭제할 수 있습니다.
 </div>
 
-
 <!-- 이름 입력 팝업 -->
 <div class="modal-bg" id="modal">
-
     <div class="modal">
-
         <h2 id="modalTitle">이름 입력</h2>
-
         <div class="modal-info" id="modalInfo"></div>
-
-        <input
-            type="text"
-            id="nameInput"
-            maxlength="10"
-            placeholder="이름을 입력하세요"
-        >
-
+        <input type="text" id="nameInput" maxlength="10" placeholder="이름을 입력하세요">
         <div class="buttons">
-
-            <button class="save" onclick="saveName()">
-                저장
-            </button>
-
-            <button
-                class="delete"
-                id="deleteButton"
-                onclick="deleteName()"
-            >
-                삭제
-            </button>
-
-            <button class="cancel" onclick="closeModal()">
-                취소
-            </button>
-
+            <button class="save" id="btnSave">저장</button>
+            <button class="delete" id="btnDelete">삭제</button>
+            <button class="cancel" id="btnCancel">취소</button>
         </div>
-
     </div>
-
 </div>
 
-
-<script>
-
-/* =========================================
-   시간표 데이터
-========================================= */
-
-const schedules = [
-
-    {
-        date: "9월 15일 (화요일)",
-        className: "day15",
-
-        times: [
-            "(오픈) 10:00-11:00",
-            "11:00-12:00",
-            "12:00-13:00",
-            "13:00-14:00",
-            "14:00-15:00",
-            "15:00-16:00",
-            "(정리) 16:00-17:00"
-        ],
-
-        roles: [
-            "떡",
-            "삼겹살",
-            "꼬치",
-            "소스",
-            "보조",
-            "재정"
-        ],
-
-        names: [
-            ["박준영","홍재훈","김에스터","홍혜인","","한승희"],
-            ["김현수","홍재훈","김에스터","유세종","천현서","임하진"],
-            ["김현수","이번영","이지환","유세종","","임하진"],
-            ["박준영","심해일","이지환","임수하","","홍재훈"],
-            ["박준영","심해일","허우영","김요한","홍유나","김소진"],
-            ["홍혜인","이장우","허우영","김동욱","김성준","임하진"],
-            ["양지성","이장우","박예은","김동욱","윤서현","홍혜인"]
-        ]
-    },
-
-
-    {
-        date: "9월 16일 (수요일)",
-        className: "day16",
-
-        times: [
-            "(오픈) 10:00-11:00",
-            "11:00-12:00",
-            "12:00-13:00",
-            "13:00-14:00",
-            "14:00-15:00",
-            "(정리) 15:00-16:00"
-        ],
-
-        roles: [
-            "떡",
-            "삼겹살",
-            "꼬치",
-            "소스",
-            "보조",
-            "재정"
-        ],
-
-        names: [
-            ["홍혜인","김요한","김진욱","한승희","김에스터","임하진"],
-            ["홍혜인","한승희","송재린","이번영","김에스터","임하진"],
-            ["김소진","양지성","허우영","김성준","송재린","이번영"],
-            ["이힘찬","김성준","허우영","김다인","이도연","조서진"],
-            ["김요한","김진욱","이도연","임수하","천현서","조서진"],
-            ["송재린","홍재훈","김진욱","임수하","한승희","이번영"]
-        ]
-    },
-
-
-    {
-        date: "9월 17일 (목요일)",
-        className: "day17",
-
-        times: [
-            "(오픈) 10:00-11:00",
-            "11:00-12:00",
-            "12:00-13:00",
-            "13:00-14:00",
-            "(정리) 14:00-15:00"
-        ],
-
-        roles: [
-            "떡",
-            "삼겹살",
-            "꼬치",
-            "소스",
-            "보조",
-            "재정",
-            "도우미"
-        ],
-
-        names: [
-            ["이상준","김동하","홍혜인","김진욱","김에스터","김현수",""],
-            ["이상준","김동하","김규민","김동욱","김에스터","박준영","이지환"],
-            ["김소진","박준영","이번영","김다인","허우영","도현민","양지성"],
-            ["김소진","김요한","이번영","유세종","김다인","도현민","허우영"],
-            ["김현수","김진욱","김주은","윤서현","김요한","홍혜인",""]
-        ]
-    }
-
-];
-
-
-/* =========================================
-   저장된 데이터 불러오기
-========================================= */
-
-const STORAGE_KEY = "tteoksam_schedule";
-
-let savedData =
-    JSON.parse(localStorage.getItem(STORAGE_KEY));
-
-
-if (!savedData) {
-
-    savedData = schedules.map(schedule =>
-        schedule.names.map(row => [...row])
-    );
-
-}
-
-
-/* 현재 선택된 칸 */
-let selected = null;
-
-
-/* =========================================
-   시간표 만들기
-========================================= */
-
-function createTables() {
-
-    const container =
-        document.getElementById("tables");
-
-    container.innerHTML = "";
-
-
-    schedules.forEach((schedule, dayIndex) => {
-
-        const table =
-            document.createElement("table");
-
-        table.className =
-            "schedule " + schedule.className;
-
-
-        /* 제목 */
-        const titleRow =
-            table.insertRow();
-
-        const titleCell =
-            titleRow.insertCell();
-
-        titleCell.colSpan =
-            schedule.roles.length + 1;
-
-        titleCell.className =
-            "title";
-
-        titleCell.textContent =
-            `떡삼 부스 '${schedule.date}' 시간표`;
-
-
-        /* 헤더 */
-        const header =
-            table.insertRow();
-
-
-        const timeHeader =
-            document.createElement("th");
-
-        timeHeader.textContent =
-            "시간대";
-
-        timeHeader.className =
-            "time";
-
-        header.appendChild(timeHeader);
-
-
-        schedule.roles.forEach(role => {
-
-            const th =
-                document.createElement("th");
-
-            th.textContent = role;
-
-            header.appendChild(th);
-
-        });
-
-
-        /* 시간별 행 */
-        schedule.times.forEach(
-            (time, rowIndex) => {
-
-                const row =
-                    table.insertRow();
-
-
-                const timeCell =
-                    row.insertCell();
-
-                timeCell.textContent =
-                    time;
-
-                timeCell.className =
-                    "time";
-
-
-                schedule.roles.forEach(
-                    (role, colIndex) => {
-
-                        const cell =
-                            row.insertCell();
-
-                        cell.className =
-                            "name-cell";
-
-
-                        const name =
-                            savedData[
-                                dayIndex
-                            ][
-                                rowIndex
-                            ][
-                                colIndex
-                            ] || "";
-
-
-                        if (name === "") {
-
-                            cell.classList.add(
-                                "empty"
-                            );
-
-                        }
-
-
-                        cell.textContent =
-                            name;
-
-
-                        /* 클릭 이벤트 */
-                        cell.onclick = function() {
-
-                            openModal(
-                                dayIndex,
-                                rowIndex,
-                                colIndex
-                            );
-
-                        };
-
-                    }
-                );
-
-            }
-        );
-
-
-        container.appendChild(table);
-
-    });
-
-}
-
-
-/* =========================================
-   팝업 열기
-========================================= */
-
-function openModal(
-    day,
-    row,
-    col
-) {
-
-    selected = {
-        day: day,
-        row: row,
-        col: col
-    };
-
-
-    const currentName =
-        savedData[day][row][col] || "";
-
-
-    const schedule =
-        schedules[day];
-
-
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
-        currentName
-        ? "이름 수정"
-        : "이름 입력";
-
-
-    document.getElementById(
-        "modalInfo"
-    ).textContent =
-        `${schedule.date} / ${schedule.times[row]} / ${schedule.roles[col]}`;
-
-
-    document.getElementById(
-        "nameInput"
-    ).value =
-        currentName;
-
-
-    /* 이름이 있을 때만 삭제 버튼 */
-    document.getElementById(
-        "deleteButton"
-    ).style.display =
-        currentName
-        ? "block"
-        : "none";
-
-
-    document.getElementById(
-        "modal"
-    ).classList.add("show");
-
-
-    setTimeout(() => {
-
-        document.getElementById(
-            "nameInput"
-        ).focus();
-
-    }, 100);
-
-}
-
-
-/* =========================================
-   이름 저장
-========================================= */
-
-function saveName() {
-
-    if (!selected) return;
-
-
-    const input =
-        document.getElementById(
-            "nameInput"
-        );
-
-
-    const name =
-        input.value.trim();
-
-
-    savedData[
-        selected.day
-    ][
-        selected.row
-    ][
-        selected.col
-    ] = name;
-
-
-    /* 브라우저에 저장 */
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(savedData)
-    );
-
-
-    closeModal();
-
-    createTables();
-
-}
-
-
-/* =========================================
-   이름 삭제
-========================================= */
-
-function deleteName() {
-
-    if (!selected) return;
-
-
-    savedData[
-        selected.day
-    ][
-        selected.row
-    ][
-        selected.col
-    ] = "";
-
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(savedData)
-    );
-
-
-    closeModal();
-
-    createTables();
-
-}
-
-
-/* =========================================
-   팝업 닫기
-========================================= */
-
-function closeModal() {
-
-    document.getElementById(
-        "modal"
-    ).classList.remove("show");
-
-    selected = null;
-
-}
-
-
-/* =========================================
-   엔터키로 저장
-========================================= */
-
-document.getElementById(
-    "nameInput"
-).addEventListener(
-    "keydown",
-    function(event) {
-
-        if (event.key === "Enter") {
-
-            saveName();
-
-        }
-
-        if (event.key === "Escape") {
-
-            closeModal();
-
-        }
-
-    }
-);
-
-
-/* 팝업 바깥 클릭하면 닫기 */
-document.getElementById(
-    "modal"
-).addEventListener(
-    "click",
-    function(event) {
-
-        if (event.target === this) {
-
-            closeModal();
-
-        }
-
-    }
-);
-
-
-/* 처음 실행 */
-createTables();
-
+<!-- Firebase 모듈 및 실시간 연동 로직 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // 보내주신 이미지의 Firebase 설정값이 적용되었습니다.
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuh5dW1F4QnJcdiSjBWEzOrsU4IuUAWQ8",
+    authDomain: "dducksam-3c6d2.firebaseapp.com",
+    databaseURL: "https://dducksam-3c6d2-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "dducksam-3c6d2",
+    storageBucket: "dducksam-3c6d2.firebasestorage.app",
+    messagingSenderId: "17114391457",
+    appId: "1:17114391457:web:285dd96bf44fd9b29d61e0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dbRef = ref(db, 'scheduleData');
+
+  const schedules = [
+      {
+          date: "9월 15일 (화요일)",
+          className: "day15",
+          times: ["(오픈) 10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "(정리) 16:00-17:00"],
+          roles: ["떡", "삼겹살", "꼬치", "소스", "보조", "재정"],
+          names: [
+              ["박준영","홍재훈","김에스터","홍혜인","","한승희"],
+              ["김현수","홍재훈","김에스터","유세종","천현서","임하진"],
+              ["김현수","이번영","이지환","유세종","","임하진"],
+              ["박준영","심해일","이지환","임수하","","홍재훈"],
+              ["박준영","심해일","허우영","김요한","홍유나","김소진"],
+              ["홍혜인","이장우","허우영","김동욱","김성준","임하진"],
+              ["양지성","이장우","박예은","김동욱","윤서현","홍혜인"]
+          ]
+      },
+      {
+          date: "9월 16일 (수요일)",
+          className: "day16",
+          times: ["(오픈) 10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "(정리) 15:00-16:00"],
+          roles: ["떡", "삼겹살", "꼬치", "소스", "보조", "재정"],
+          names: [
+              ["홍혜인","김요한","김진욱","한승희","김에스터","임하진"],
+              ["홍혜인","한승희","송재린","이번영","김에스터","임하진"],
+              ["김소진","양지성","허우영","김성준","송재린","이번영"],
+              ["이힘찬","김성준","허우영","김다인","이도연","조서진"],
+              ["김요한","김진욱","이도연","임수하","천현서","조서진"],
+              ["송재린","홍재훈","김진욱","임수하","한승희","이번영"]
+          ]
+      },
+      {
+          date: "9월 17일 (목요일)",
+          className: "day17",
+          times: ["(오픈) 10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "(정리) 14:00-15:00"],
+          roles: ["떡", "삼겹살", "꼬치", "소스", "보조", "재정", "도우미"],
+          names: [
+              ["이상준","김동하","홍혜인","김진욱","김에스터","김현수",""],
+              ["이상준","김동하","김규민","김동욱","김에스터","박준영","이지환"],
+              ["김소진","박준영","이번영","김다인","허우영","도현민","양지성"],
+              ["김소진","김요한","이번영","유세종","김다인","도현민","허우영"],
+              ["김현수","김진욱","김주은","윤서현","김요한","홍혜인",""]
+          ]
+      }
+  ];
+
+  let currentData = null;
+  let selected = null;
+
+  // 실시간 동기화 수신
+  onValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+          currentData = data;
+      } else {
+          currentData = schedules.map(s => s.names.map(row => [...row]));
+          set(dbRef, currentData);
+      }
+      createTables();
+  });
+
+  function createTables() {
+      if (!currentData) return;
+      const container = document.getElementById("tables");
+      container.innerHTML = "";
+
+      schedules.forEach((schedule, dayIndex) => {
+          const table = document.createElement("table");
+          table.className = "schedule " + schedule.className;
+
+          const titleRow = table.insertRow();
+          const titleCell = titleRow.insertCell();
+          titleCell.colSpan = schedule.roles.length + 1;
+          titleCell.className = "title";
+          titleCell.textContent = `떡삼 부스 '${schedule.date}' 시간표`;
+
+          const header = table.insertRow();
+          const timeHeader = document.createElement("th");
+          timeHeader.textContent = "시간대";
+          timeHeader.className = "time";
+          header.appendChild(timeHeader);
+
+          schedule.roles.forEach(role => {
+              const th = document.createElement("th");
+              th.textContent = role;
+              header.appendChild(th);
+          });
+
+          schedule.times.forEach((time, rowIndex) => {
+              const row = table.insertRow();
+              const timeCell = row.insertCell();
+              timeCell.textContent = time;
+              timeCell.className = "time";
+
+              schedule.roles.forEach((role, colIndex) => {
+                  const cell = row.insertCell();
+                  cell.className = "name-cell";
+
+                  const name = (currentData[dayIndex] && currentData[dayIndex][rowIndex] && currentData[dayIndex][rowIndex][colIndex]) || "";
+
+                  if (name === "") {
+                      cell.classList.add("empty");
+                  }
+
+                  cell.textContent = name;
+
+                  cell.onclick = function() {
+                      openModal(dayIndex, rowIndex, colIndex);
+                  };
+              });
+          });
+
+          container.appendChild(table);
+      });
+  }
+
+  function openModal(day, row, col) {
+      selected = { day, row, col };
+      const currentName = currentData[day][row][col] || "";
+      const schedule = schedules[day];
+
+      document.getElementById("modalTitle").textContent = currentName ? "이름 수정" : "이름 입력";
+      document.getElementById("modalInfo").textContent = `${schedule.date} / ${schedule.times[row]} / ${schedule.roles[col]}`;
+      document.getElementById("nameInput").value = currentName;
+      document.getElementById("btnDelete").style.display = currentName ? "block" : "none";
+
+      document.getElementById("modal").classList.add("show");
+
+      setTimeout(() => {
+          document.getElementById("nameInput").focus();
+      }, 100);
+  }
+
+  function saveName() {
+      if (!selected) return;
+      const name = document.getElementById("nameInput").value.trim();
+      currentData[selected.day][selected.row][selected.col] = name;
+      
+      set(dbRef, currentData);
+      closeModal();
+  }
+
+  function deleteName() {
+      if (!selected) return;
+      currentData[selected.day][selected.row][selected.col] = "";
+      
+      set(dbRef, currentData);
+      closeModal();
+  }
+
+  function closeModal() {
+      document.getElementById("modal").classList.remove("show");
+      selected = null;
+  }
+
+  document.getElementById("btnSave").addEventListener("click", saveName);
+  document.getElementById("btnDelete").addEventListener("click", deleteName);
+  document.getElementById("btnCancel").addEventListener("click", closeModal);
+
+  document.getElementById("nameInput").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") saveName();
+      if (event.key === "Escape") closeModal();
+  });
+
+  document.getElementById("modal").addEventListener("click", function(event) {
+      if (event.target === this) closeModal();
+  });
 </script>
 
 </body>
